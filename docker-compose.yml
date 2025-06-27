@@ -1,10 +1,25 @@
 services:
   stats-server:
+    build:
     ports:
       - "9090:9090"
 
   stats-db:
     image: postgres:16.1
+    ports:
+      - "5432:5432"
+    container_name: stats-db
+    environment:
+      POSTGRES_DB: stats
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    volumes:
+      - stats-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   ewm-service:
     ports:
