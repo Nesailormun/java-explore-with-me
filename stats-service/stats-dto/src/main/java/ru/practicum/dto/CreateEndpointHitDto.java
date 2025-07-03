@@ -1,6 +1,5 @@
 package ru.practicum.dto;
 
-import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -25,7 +24,6 @@ public class CreateEndpointHitDto {
     @NotNull(message = "IP пользователя не должен быть null")
     private String ip;
     @NotNull(message = "Время создания не должен быть null")
-    @FutureOrPresent(message = "Время создания не должно быть в прошлом")
     private LocalDateTime timestamp;
 }
 
