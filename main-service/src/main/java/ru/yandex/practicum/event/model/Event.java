@@ -1,15 +1,16 @@
-package ru.yandex.practicum.model;
+package ru.yandex.practicum.event.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import ru.yandex.practicum.category.model.Category;
+import ru.yandex.practicum.user.model.User;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "events")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

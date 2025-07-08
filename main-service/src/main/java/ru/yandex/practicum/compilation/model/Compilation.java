@@ -1,10 +1,11 @@
-package ru.yandex.practicum.model;
+package ru.yandex.practicum.compilation.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.yandex.practicum.event.model.Event;
 
 import java.util.Set;
 

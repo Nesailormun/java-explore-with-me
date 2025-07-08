@@ -1,10 +1,12 @@
-package ru.yandex.practicum.model;
+package ru.yandex.practicum.request.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.yandex.practicum.event.model.Event;
+import ru.yandex.practicum.user.model.User;
 
 import java.time.LocalDateTime;
 
@@ -30,9 +32,9 @@ public class ParticipationRequest {
     private LocalDateTime created;
 
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private RequestStatus status;
 
-    public enum Status {
+    public enum RequestStatus {
         PENDING, CONFIRMED, REJECTED, CANCELED
     }
 }
