@@ -1,6 +1,5 @@
 package ru.yandex.practicum.compilation.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,9 +11,8 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class NewCompilationDto {
+public class UpdateCompilationRequest {
 
-    @NotBlank
     private String title;
     private Boolean pinned;
     private List<Long> events;

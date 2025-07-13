@@ -53,7 +53,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         if (!existing.getName().equals(categoryDto.getName()) &&
                 repository.findByName(categoryDto.getName()).isPresent()) {
-            log.warn("Ошибка. Категория: {} уже существует.",existing.getName());
+            log.warn("Ошибка. Категория: {} уже существует.", existing.getName());
             throw new ConflictException("Категория уже существует");
         }
 

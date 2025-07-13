@@ -14,7 +14,7 @@ public interface CompilationMapper {
     CompilationDto toDto(Compilation compilation);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "events", ignore = true) // будет устанавливаться вручную по ID
+    @Mapping(target = "events", ignore = true)
     Compilation fromDto(NewCompilationDto dto);
 }
 
