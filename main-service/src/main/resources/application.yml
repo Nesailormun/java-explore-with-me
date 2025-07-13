@@ -1,0 +1,32 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:6543/ewm
+    username: dbuser
+    password: 12345
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  sql:
+    init:
+      mode: always
+
+logging:
+  level:
+    ru:
+      yandex.practicum: INFO
+    org:
+      zalando.logbook: TRACE
+      hibernate.SQL: DEBUG
+      springframework:
+        orm.jpa: INFO
+        transaction: INFO
+        transaction.interceptor: TRACE
+        orm.jpa.JpaTransactionManager: DEBUG
+
