@@ -1,13 +1,17 @@
 package ru.yandex.practicum.event.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class LocationDto {
+
+    @NotNull
     private Float lat;
+    @NotNull
     private Float lon;
 }

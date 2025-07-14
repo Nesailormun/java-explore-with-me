@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class NewUserRequest {
 
-
     @NotBlank(message = "Имя пользователя не должно быть пустым")
     private String name;
     @NotBlank(message = "email должен быть указан")

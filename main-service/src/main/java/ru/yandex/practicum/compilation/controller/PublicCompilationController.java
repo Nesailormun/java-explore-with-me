@@ -7,7 +7,8 @@ import ru.yandex.practicum.compilation.service.CompilationService;
 
 import java.util.List;
 
-@RestController("/compilations")
+@RestController
+@RequestMapping("/compilations")
 @Slf4j
 public class PublicCompilationController {
 

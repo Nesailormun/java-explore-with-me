@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<UserDto> getUsers(List<Long> ids, int from, int size) {
+    public List<UserDto> getUsers(List<Integer> ids, int from, int size) {
         log.info("Retrieving users with ids: {}; from={}, size={}", ids, from, size);
         if (ids == null || ids.isEmpty()) {
             return userRepository.findAll(PageRequest.of(from/size, size))

@@ -19,6 +19,7 @@ public interface EventMapper {
     @Mapping(source = "location", target = "location")
     @Mapping(source = "state", target = "state")
     @Mapping(target = "views", ignore = true)
+    @Mapping(target = "confirmedRequests", ignore = true)
     default EventFullDto toFullDto(Event event) {
         return null;
     }
@@ -26,6 +27,7 @@ public interface EventMapper {
     @Mapping(source = "initiator", target = "initiator")
     @Mapping(source = "category", target = "category")
     @Mapping(target = "views", ignore = true)
+    @Mapping(target = "confirmedRequests", ignore = true)
     EventShortDto toShortDto(Event event);
 
     @Mapping(source = "category", target = "category", qualifiedByName = "mapCategoryId")
