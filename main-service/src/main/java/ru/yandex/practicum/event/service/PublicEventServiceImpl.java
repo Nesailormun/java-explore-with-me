@@ -75,7 +75,10 @@ public class PublicEventServiceImpl implements PublicEventService {
         saveStats(request);
 
         Event event = eventRepository.findByIdAndState(eventId, Event.EventState.PUBLISHED)
-                .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
+                .orElseThrow(() -> {
+                    log.warn("Could not find public event with id={}", eventId);
+                    return new NotFoundException("Event with id=" + eventId + " was not found");
+                });
 
         Long confirmedRequests = requestRepository.countByEventIdAndStatus(eventId,
                 ParticipationRequest.RequestStatus.CONFIRMED);
@@ -99,7 +102,7 @@ public class PublicEventServiceImpl implements PublicEventService {
     private Map<Long, Long> getConfirmedRequestsCount(List<Event> events) {
         List<Long> eventIds = events.stream()
                 .map(Event::getId)
-                .collect(Collectors.toList());
+                .toList();
 
         return requestRepository.findByEventIdInAndStatus(eventIds, ParticipationRequest.RequestStatus.CONFIRMED)
                 .stream()

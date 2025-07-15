@@ -48,6 +48,4 @@ public class PublicEventController {
         return publicEventService.getPublicEventById(id, request);
 
     }
-
-
 }

@@ -7,6 +7,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.event.model.Event;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
+@Transactional(readOnly = true)
 public class CustomEventRepositoryImpl implements CustomEventRepository {
 
     private final EntityManager em;
@@ -33,47 +35,51 @@ public class CustomEventRepositoryImpl implements CustomEventRepository {
                                           Pageable pageable) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Event> query = cb.createQuery(Event.class);
-        Root<Event> event = query.from(Event.class);
+        Root<Event> root = query.from(Event.class);
 
         List<Predicate> predicates = new ArrayList<>();
 
-        predicates.add(cb.equal(event.get("state"), Event.EventState.PUBLISHED));
+        predicates.add(cb.equal(root.get("state"), Event.EventState.PUBLISHED));
 
         if (text != null && !text.isBlank()) {
             String pattern = "%" + text.toLowerCase() + "%";
-            Predicate inAnnotation = cb.like(cb.lower(event.get("annotation")), pattern);
-            Predicate inDescription = cb.like(cb.lower(event.get("description")), pattern);
+            Predicate inAnnotation = cb.like(cb.lower(root.get("annotation")), pattern);
+            Predicate inDescription = cb.like(cb.lower(root.get("description")), pattern);
             predicates.add(cb.or(inAnnotation, inDescription));
         }
 
         if (categoryIds != null && !categoryIds.isEmpty()) {
-            predicates.add(event.get("category").get("id").in(categoryIds));
+            predicates.add(root.get("category").get("id").in(categoryIds));
         }
 
         if (paid != null) {
-            predicates.add(cb.equal(event.get("paid"), paid));
+            predicates.add(cb.equal(root.get("paid"), paid));
         }
 
         if (rangeStart != null) {
-            predicates.add(cb.greaterThanOrEqualTo(event.get("eventDate"), rangeStart));
+            predicates.add(cb.greaterThanOrEqualTo(root.get("eventDate"), rangeStart));
         }
 
         if (rangeEnd != null) {
-            predicates.add(cb.lessThanOrEqualTo(event.get("eventDate"), rangeEnd));
+            predicates.add(cb.lessThanOrEqualTo(root.get("eventDate"), rangeEnd));
+        }
+
+        if (rangeStart == null && rangeEnd == null) {
+            predicates.add(cb.greaterThan(root.get("eventDate"), LocalDateTime.now()));
         }
 
         if (onlyAvailable != null && onlyAvailable) {
-            Predicate noLimit = cb.equal(event.get("participantLimit"), 0);
-            Predicate hasFreeSpots = cb.greaterThan(event.get("participantLimit"), event.get("confirmedRequests"));
+            Predicate noLimit = cb.equal(root.get("participantLimit"), 0);
+            Predicate hasFreeSpots = cb.greaterThan(root.get("participantLimit"), root.get("confirmedRequests"));
             predicates.add(cb.or(noLimit, hasFreeSpots));
         }
 
-        query.select(event).where(cb.and(predicates.toArray(new Predicate[0])));
+        query.select(root).where(cb.and(predicates.toArray(new Predicate[0])));
 
         if ("VIEWS".equals(sort)) {
-            query.orderBy(cb.desc(event.get("views")));
+            query.orderBy(cb.desc(root.get("views")));
         } else {
-            query.orderBy(cb.asc(event.get("eventDate")));
+            query.orderBy(cb.asc(root.get("eventDate")));
         }
 
         return em.createQuery(query)

@@ -20,7 +20,6 @@ import ru.yandex.practicum.exception.NotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +42,7 @@ public class AdminEventServiceImpl implements AdminEventService {
                                            LocalDateTime rangeEnd,
                                            int from,
                                            int size) {
+        log.info("Admin searching for events with parameters");
         List<Event.EventState> stateEnums = null;
         if (states != null && !states.isEmpty()) {
             stateEnums = states.stream()
@@ -50,50 +50,66 @@ public class AdminEventServiceImpl implements AdminEventService {
                     .toList();
         }
 
-        Pageable pageable = PageRequest.of(from / size, size);
-
         List<Event> events = customEventRepository.searchAdminEvents(
                 userIds,
                 stateEnums,
                 categoryIds,
                 rangeStart,
                 rangeEnd,
-                pageable
+                PageRequest.of(from / size, size)
         );
 
         return events.stream()
                 .map(eventMapper::toFullDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     @Transactional
     public EventFullDto updateEvent(Long eventId, UpdateEventRequest request) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event not found"));
 
-        if (request.getEventDate() != null &&
-                request.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
-            throw new ConflictException("Event date must be at least 1 hour in the future");
-        }
+        log.info("Admin is updating event with id={}, request={}", eventId, request);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() ->{
+                    log.info("Event with id={} not found", eventId);
+                    return new NotFoundException("Event not found");
+                });
 
         if (event.getState() == Event.EventState.PUBLISHED) {
+            log.warn("Cannot update event. Event already published");
             throw new ConflictException("Published event cannot be changed");
         }
 
-        if (request.getTitle() != null) event.setTitle(request.getTitle());
-        if (request.getAnnotation() != null) event.setAnnotation(request.getAnnotation());
-        if (request.getDescription() != null) event.setDescription(request.getDescription());
-        if (request.getPaid() != null) event.setPaid(request.getPaid());
-        if (request.getParticipantLimit() != null) event.setParticipantLimit(request.getParticipantLimit());
-        if (request.getRequestModeration() != null) event.setRequestModeration(request.getRequestModeration());
-        if (request.getEventDate() != null) event.setEventDate(request.getEventDate());
+        if (request.getTitle() != null) {
+            event.setTitle(request.getTitle());
+        }
+        if (request.getAnnotation() != null) {
+            event.setAnnotation(request.getAnnotation());
+        }
+        if (request.getDescription() != null) {
+            event.setDescription(request.getDescription());
+        }
+        if (request.getPaid() != null) {
+            event.setPaid(request.getPaid());
+        }
+        if (request.getParticipantLimit() != null) {
+            event.setParticipantLimit(request.getParticipantLimit());
+        }
+        if (request.getRequestModeration() != null) {
+            event.setRequestModeration(request.getRequestModeration());
+        }
+        if (request.getEventDate() != null) {
+            event.setEventDate(request.getEventDate());
+        }
         if (request.getLocation() != null) {
             event.setLocation(locationMapper.toEntity(request.getLocation()));
         }
         if (request.getCategory() != null) {
             Category category = categoryRepository.findById(request.getCategory())
-                    .orElseThrow(() -> new NotFoundException("Category not found"));
+                    .orElseThrow(() -> {
+                        log.warn("Category with id={} not found", request.getCategory());
+                        return new NotFoundException("Category not found");
+                    });
             event.setCategory(category);
         }
 
@@ -101,6 +117,7 @@ public class AdminEventServiceImpl implements AdminEventService {
             switch (request.getStateAction()) {
                 case "PUBLISH_EVENT":
                     if (event.getState() != Event.EventState.PENDING) {
+                        log.warn("Cannot publish event. Event already published or canceled");
                         throw new ConflictException("Only pending events can be published");
                     }
                     event.setState(Event.EventState.PUBLISHED);
@@ -108,6 +125,7 @@ public class AdminEventServiceImpl implements AdminEventService {
                     break;
                 case "REJECT_EVENT":
                     if (event.getState() == Event.EventState.PUBLISHED) {
+                        log.warn("Cannot reject event. Event already published");
                         throw new ConflictException("Cannot reject published event");
                     }
                     event.setState(Event.EventState.CANCELED);
