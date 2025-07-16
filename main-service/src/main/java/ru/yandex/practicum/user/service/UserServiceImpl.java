@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto registerUser(NewUserRequest newUserRequest) {
         log.info("Registering new user: {}", newUserRequest);
-        if(userRepository.existsByEmail(newUserRequest.getEmail())) {
+        if (userRepository.existsByEmail(newUserRequest.getEmail())) {
             log.warn("User with email {} already exists", newUserRequest.getEmail());
             throw new ConflictException("User with email " + newUserRequest.getEmail() + " already exists");
         }
@@ -38,10 +38,10 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<UserDto> getUsers(List<Integer> ids, int from, int size) {
+    public List<UserDto> getUsers(List<Long> ids, int from, int size) {
         log.info("Retrieving users with ids: {}; from={}, size={}", ids, from, size);
         if (ids == null || ids.isEmpty()) {
-            return userRepository.findAll(PageRequest.of(from/size, size))
+            return userRepository.findAll(PageRequest.of(from / size, size))
                     .stream()
                     .map(userMapper::toDto)
                     .toList();

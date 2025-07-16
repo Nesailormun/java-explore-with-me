@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ParticipationRequestDto {
+
     private Long id;
     private Long event;
     private Long requester;

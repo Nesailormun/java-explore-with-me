@@ -8,7 +8,7 @@ import ru.yandex.practicum.request.model.ParticipationRequest;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
-public interface RequestMapper {
+public interface ParticipationRequestMapper {
 
     @Mapping(source = "event.id", target = "event")
     @Mapping(source = "requester.id", target = "requester")

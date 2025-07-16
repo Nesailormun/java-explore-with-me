@@ -1,4 +1,4 @@
-package ru.yandex.practicum.request.dto;
+package ru.yandex.practicum.event.dto;
 
 import lombok.*;
 import ru.yandex.practicum.request.model.ParticipationRequest;

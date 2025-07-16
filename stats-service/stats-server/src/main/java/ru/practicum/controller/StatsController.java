@@ -51,8 +51,8 @@ public class StatsController {
         return statsService.getStats(start, end, uris, unique);
     }
 
-    @GetMapping("/stats")
-    public Long getViewsCountByEventId(@RequestParam @Positive Long eventId) {
+    @GetMapping("/stats/{eventId}")
+    public Long getViewsCountByEventId(@PathVariable @Positive Long eventId) {
         log.info("GET /stats/{}.", eventId);
         return statsService.getViewsCountByEventId(eventId);
     }

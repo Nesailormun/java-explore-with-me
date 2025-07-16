@@ -16,8 +16,15 @@ import ru.yandex.practicum.event.mapper.EventMapper;
 import ru.yandex.practicum.event.mapper.LocationMapper;
 import ru.yandex.practicum.event.model.Event;
 import ru.yandex.practicum.event.repository.EventRepository;
+import ru.yandex.practicum.exception.BadRequestException;
 import ru.yandex.practicum.exception.ConflictException;
 import ru.yandex.practicum.exception.NotFoundException;
+import ru.yandex.practicum.event.dto.EventRequestStatusUpdateRequest;
+import ru.yandex.practicum.event.dto.EventRequestStatusUpdateResult;
+import ru.yandex.practicum.request.dto.ParticipationRequestDto;
+import ru.yandex.practicum.request.mapper.ParticipationRequestMapper;
+import ru.yandex.practicum.request.model.ParticipationRequest;
+import ru.yandex.practicum.request.repository.ParticipationRequestRepository;
 import ru.yandex.practicum.user.model.User;
 import ru.yandex.practicum.user.repository.UserRepository;
 
@@ -35,7 +42,8 @@ public class PrivateEventServiceImpl implements PrivateEventService {
     private final LocationMapper locationMapper;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
-
+    private final ParticipationRequestRepository participationRequestRepository;
+    private final ParticipationRequestMapper participationRequestMapper;
 
     @Override
     @Transactional
@@ -78,6 +86,7 @@ public class PrivateEventServiceImpl implements PrivateEventService {
 
         log.info("Updating event with id={} by user={}; body={}", eventId, userId, request);
         checkAndGetUser(userId);
+
         Event event = checkAndGetEvent(eventId);
 
         if (!event.getInitiator().getId().equals(userId)) {
@@ -133,6 +142,108 @@ public class PrivateEventServiceImpl implements PrivateEventService {
             }
         }
         return eventMapper.toFullDto(eventRepository.save(event));
+    }
+
+    @Override
+    public List<ParticipationRequestDto> getEventParticipants(Long userId, Long eventId) {
+
+        log.info("Getting participation requests in event={} of user={}", eventId, userId);
+        checkAndGetUser(userId);
+        Event event = checkAndGetEvent(eventId);
+
+        if (!event.getInitiator().getId().equals(userId)) {
+            log.error("Only event initiator can view participation requests");
+            throw new ConflictException("Access denied to get events participation requests");
+        }
+
+        List<ParticipationRequest> request = participationRequestRepository.findAllByEventIdAndRequesterId(eventId, userId);
+        return participationRequestMapper.toDtoList(request);
+
+    }
+
+    @Override
+    @Transactional
+    public EventRequestStatusUpdateResult changeRequestStatus(Long userId, Long eventId,
+                                                              EventRequestStatusUpdateRequest request) {
+
+        log.info("Changing requests status by user={} in event={}", userId, eventId);
+        User user = checkAndGetUser(userId);
+        Event event = checkAndGetEvent(eventId);
+
+        if (!event.getInitiator().getId().equals(user.getId())) {
+            log.error("Only event initiator can change participation requests status");
+            throw new ConflictException("Access denied to change participation requests status");
+        }
+
+        List<ParticipationRequest> participationRequests = participationRequestRepository
+                .findAllByIdIn(request.getRequestIds());
+
+        participationRequests.forEach(participationRequest -> {
+            if (!participationRequest.getEvent().getId().equals(eventId)) {
+                log.error("Request doesn't belong to this event");
+                throw new BadRequestException("Request doesn't belong to this event");
+            }
+            if (!participationRequest.getStatus().equals(ParticipationRequest.RequestStatus.PENDING)) {
+                log.error("Participation request status must be PENDING");
+                throw new BadRequestException("Request must have status PENDING");
+            }
+        });
+
+        return switch (request.getStatus()) {
+            case ParticipationRequest.RequestStatus.CONFIRMED ->
+                    confirmParticipationRequests(event, participationRequests);
+            case ParticipationRequest.RequestStatus.REJECTED -> rejectParticipationRequests(participationRequests);
+            default -> {
+                log.error("Unknown request status={}", request.getStatus());
+                throw new BadRequestException("Unknown request status");
+            }
+        };
+
+    }
+
+    private EventRequestStatusUpdateResult confirmParticipationRequests(Event event, List<ParticipationRequest> requests) {
+        int limit = event.getParticipantLimit();
+        EventRequestStatusUpdateResult result = new EventRequestStatusUpdateResult();
+        if (limit != 0) {
+            long confirmedRequestsCount = participationRequestRepository.countByEventIdAndStatus(event.getId(),
+                    ParticipationRequest.RequestStatus.CONFIRMED);
+            if (confirmedRequestsCount >= limit) {
+                log.error("Events participant limit reached limit={}, confirmed participants={}", limit, confirmedRequestsCount);
+                throw new ConflictException("Events participant limit reached");
+            }
+            if (requests.size() + confirmedRequestsCount > limit) {
+                int available = (int) (limit - confirmedRequestsCount);
+                List<ParticipationRequest> toConfirm = requests.subList(0, available);
+                List<ParticipationRequest> toReject = requests.subList(available, requests.size());
+
+                toConfirm.forEach(req -> req.setStatus(ParticipationRequest.RequestStatus.CONFIRMED));
+                toReject.forEach(req -> req.setStatus(ParticipationRequest.RequestStatus.REJECTED));
+
+                participationRequestRepository.saveAll(requests);
+                result.setConfirmedRequests(participationRequestMapper.toDtoList(toConfirm));
+                result.setRejectedRequests(participationRequestMapper.toDtoList(toReject));
+                return result;
+            }
+        }
+        requests.forEach(participationRequest -> {
+            participationRequest.setStatus(ParticipationRequest.RequestStatus.CONFIRMED);
+        });
+        participationRequestRepository.saveAll(requests);
+        result.setConfirmedRequests(participationRequestMapper.toDtoList(requests));
+        result.setRejectedRequests(List.of());
+        return result;
+    }
+
+    private EventRequestStatusUpdateResult rejectParticipationRequests(List<ParticipationRequest> requests) {
+
+        requests.forEach(participationRequest -> {
+            participationRequest.setStatus(ParticipationRequest.RequestStatus.REJECTED);
+        });
+        participationRequestRepository.saveAll(requests);
+        return EventRequestStatusUpdateResult.builder()
+                .rejectedRequests(participationRequestMapper.toDtoList(requests))
+                .confirmedRequests(List.of())
+                .build();
     }
 
     private Category checkAndGetCategory(Long categoryId) {

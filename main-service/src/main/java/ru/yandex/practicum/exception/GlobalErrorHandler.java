@@ -97,6 +97,20 @@ public class GlobalErrorHandler {
                 .build();
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleBadRequestException(BadRequestException ex) {
+        log.warn("400 BAD_REQUEST: Validation failed -> {}", ex.getMessage(), ex);
+
+        return ApiError.builder()
+                .errors(List.of(ex.getClass().getName()))
+                .message("Validation failed")
+                .reason("Incorrectly made request.")
+                .status(HttpStatus.BAD_REQUEST.name())
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError handleException(final Exception e) {

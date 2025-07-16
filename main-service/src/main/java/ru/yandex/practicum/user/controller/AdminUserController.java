@@ -22,10 +22,10 @@ public class AdminUserController {
     }
 
     @GetMapping
-    public List<UserDto> getUsers(@RequestParam(required = false) List<Integer> ids,
+    public List<UserDto> getUsers(@RequestParam(required = false) List<Long> ids,
                                   @RequestParam(defaultValue = "0") Integer from,
                                   @RequestParam(defaultValue = "10") Integer size) {
-        log.info("GET /admin/users with params: ids={}; from={}; size={}", ids, from, size );
+        log.info("GET /admin/users with params: ids={}; from={}; size={}", ids, from, size);
         return userService.getUsers(ids, from, size);
     }
 

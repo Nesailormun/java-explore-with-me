@@ -2,6 +2,7 @@ package ru.yandex.practicum.event.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.validator.constraints.Length;
 import ru.yandex.practicum.category.model.Category;
 import ru.yandex.practicum.user.model.User;
 
@@ -20,7 +21,11 @@ public class Event {
     private Long id;
 
     private String title;
+
+    @Column(columnDefinition = "TEXT")
     private String annotation;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ManyToOne

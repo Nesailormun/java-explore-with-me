@@ -10,7 +10,7 @@ import ru.yandex.practicum.compilation.dto.UpdateCompilationRequest;
 import ru.yandex.practicum.compilation.service.CompilationService;
 
 @RestController
-@RequestMapping( "/admin/compilations")
+@RequestMapping("/admin/compilations")
 @Slf4j
 public class AdminCompilationController {
 

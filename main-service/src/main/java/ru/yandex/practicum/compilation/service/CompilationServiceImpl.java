@@ -87,8 +87,7 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto getCompilation(Long id) {
         log.info("Getting compilation with id: {}", id);
         Compilation compilation = compilationRepository.findById(id)
-                .orElseThrow(() ->
-                {
+                .orElseThrow(() -> {
                     log.warn("Compilation with id: {} not found", id);
                     return new NotFoundException("Compilation with id: " + id + " not found");
                 });

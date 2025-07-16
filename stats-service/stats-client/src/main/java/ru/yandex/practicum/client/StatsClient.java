@@ -48,7 +48,7 @@ public class StatsClient {
         log.info("Запрос статистики просмотров для события с ID: {}", eventId);
         try {
             ResponseEntity<Long> response = restTemplate.getForEntity(
-                    statsServerUrl + "/stats?eventId={id}",
+                    statsServerUrl + "/stats/{eventId}",
                     Long.class,
                     eventId);
             return response.getBody();

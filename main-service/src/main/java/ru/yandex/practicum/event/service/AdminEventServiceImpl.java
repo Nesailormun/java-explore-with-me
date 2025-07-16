@@ -3,7 +3,6 @@ package ru.yandex.practicum.event.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.category.model.Category;
@@ -70,7 +69,7 @@ public class AdminEventServiceImpl implements AdminEventService {
 
         log.info("Admin is updating event with id={}, request={}", eventId, request);
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() ->{
+                .orElseThrow(() -> {
                     log.info("Event with id={} not found", eventId);
                     return new NotFoundException("Event not found");
                 });
