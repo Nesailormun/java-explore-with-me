@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.event.dto.EventFullDto;
 import ru.yandex.practicum.event.dto.EventShortDto;
 import ru.yandex.practicum.event.service.PublicEventService;
+import ru.yandex.practicum.exception.BadRequestException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,6 +36,11 @@ public class PublicEventController {
         log.info("GET /events with parameters: text={}; categories={}; paid={}; rangeStart={}; rangeEnd={}; " +
                         "onlyAvailable={}; sort={}; from={}; size={}", text, categories, paid, rangeStart,
                 rangeEnd, onlyAvailable, sort, from, size);
+
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+            log.error("Range start is after range end");
+            throw new BadRequestException("Range start is after range end");
+        }
 
         return publicEventService.getPublicEvents(
                 text, categories, paid, rangeStart, rangeEnd,

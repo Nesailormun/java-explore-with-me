@@ -37,6 +37,8 @@ public interface EventMapper {
     @Mapping(target = "initiator", ignore = true)
     @Mapping(target = "publishedOn", ignore = true)
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "requestModeration", defaultValue = "true")
+    @Mapping(target = "paid", defaultValue = "false")
     Event fromDto(NewEventDto dto);
 
     @Named("mapCategoryId")

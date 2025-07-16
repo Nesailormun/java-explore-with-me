@@ -1,5 +1,7 @@
 package ru.yandex.practicum.request.controller;
 
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,8 +22,8 @@ public class PrivateParticipationRequestController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto create(@PathVariable Long userId,
-                                          @RequestParam Long eventId) {
-        log.info("POST /users/{}/requests with eventId={}", userId, eventId);
+                                          @RequestParam @PositiveOrZero Long eventId) {
+        log.info("POST /users/{}/requests?eventId={}", userId, eventId);
         return requestService.createRequest(userId, eventId);
     }
 

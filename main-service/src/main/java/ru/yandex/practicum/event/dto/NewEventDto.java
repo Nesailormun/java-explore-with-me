@@ -37,8 +37,9 @@ public class NewEventDto {
     @PositiveOrZero
     private Integer participantLimit;
 
-    private Boolean requestModeration = true;
+    private Boolean requestModeration;
 
     @NotNull
+    @Positive
     private Long category;
 }

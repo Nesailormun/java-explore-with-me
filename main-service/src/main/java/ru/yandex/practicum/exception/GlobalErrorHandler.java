@@ -2,11 +2,15 @@ package ru.yandex.practicum.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
@@ -81,6 +85,45 @@ public class GlobalErrorHandler {
                 .build();
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        String errorMessage = "Required request body is missing";
+
+        if (ex.getCause() != null && ex.getCause().getMessage() != null) {
+            errorMessage = ex.getCause().getMessage();
+        }
+
+        log.warn("400 BAD_REQUEST: {}", errorMessage);
+
+        return ApiError.builder()
+                .errors(List.of(errorMessage))
+                .message("Invalid request body")
+                .reason("Required request body is missing or could not be read")
+                .status(HttpStatus.BAD_REQUEST.name())
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleMissingServletRequestParameter(
+            MissingServletRequestParameterException ex) {
+
+        String errorMessage = String.format("Required parameter '%s' is not present",
+                ex.getParameterName());
+
+        log.warn("400 BAD_REQUEST: {}", errorMessage);
+
+        return ApiError.builder()
+                .errors(List.of(errorMessage))
+                .message("Validation failed")
+                .reason("Incorrectly made request.")
+                .status(HttpStatus.BAD_REQUEST.name())
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
@@ -96,6 +139,25 @@ public class GlobalErrorHandler {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleHandlerMethodValidation(HandlerMethodValidationException ex) {
+        List<String> errors = ex.getAllValidationResults().stream()
+                .flatMap(result -> result.getResolvableErrors().stream())
+                .map(MessageSourceResolvable::getDefaultMessage)
+                .collect(Collectors.toList());
+
+        log.warn("400 BAD_REQUEST: Handler method validation failed -> {}", errors);
+
+        return ApiError.builder()
+                .errors(errors)
+                .message("Validation failed")
+                .reason("Incorrectly made request.")
+                .status(HttpStatus.BAD_REQUEST.name())
+                .timestamp(LocalDateTime.now())
+                .build();
+        }
 
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
