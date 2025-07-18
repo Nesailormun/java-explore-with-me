@@ -55,7 +55,12 @@ public class PublicEventServiceImpl implements PublicEventService {
                 PageRequest.of(from / size, size));
 
         Map<Long, Long> confirmedRequests = getConfirmedRequestsCount(events);
-        Map<Long, Long> views = getViewsCount(events);
+
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .toList();
+
+        Map<Long, Long> views = statsClient.getViewsForEvents(eventIds);
 
         return events.stream()
                 .map(event -> {
@@ -64,7 +69,7 @@ public class PublicEventServiceImpl implements PublicEventService {
                     dto.setViews(views.getOrDefault(event.getId(), 0L));
                     return dto;
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -114,11 +119,4 @@ public class PublicEventServiceImpl implements PublicEventService {
                 ));
     }
 
-    private Map<Long, Long> getViewsCount(List<Event> events) {
-        return events.stream()
-                .collect(Collectors.toMap(
-                        Event::getId,
-                        event -> statsClient.getEventViews(event.getId())
-                ));
-    }
 }

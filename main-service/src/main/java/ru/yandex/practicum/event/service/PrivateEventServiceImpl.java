@@ -79,12 +79,19 @@ public class PrivateEventServiceImpl implements PrivateEventService {
 
         List<Event> events = eventRepository.findByInitiatorId(userId, PageRequest.of(from / size, size));
 
-        Map<Long, Long> views = getViewsCount(events);
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .toList();
+
+        Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsCount(events);
+
+        Map<Long, Long> viewsMap = statsClient.getViewsForEvents(eventIds);
 
         return events.stream()
                 .map(event -> {
                     EventShortDto dto = eventMapper.toShortDto(event);
-                    dto.setViews(views.getOrDefault(event.getId(), 0L));
+                    dto.setViews(viewsMap.getOrDefault(event.getId(), 0L));
+                    dto.setConfirmedRequests(confirmedRequestsMap.getOrDefault(event.getId(), 0L));
                     return dto;
                 })
                 .toList();
@@ -98,6 +105,9 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         Event event = checkAndGetEvent(eventId);
         EventFullDto dto = eventMapper.toFullDto(event);
         dto.setViews(statsClient.getEventViews(eventId));
+        Long confirmedRequests = participationRequestRepository.countByEventIdAndStatus(eventId,
+                ParticipationRequest.RequestStatus.CONFIRMED);
+        dto.setConfirmedRequests(confirmedRequests);
         return dto;
 
     }
@@ -300,11 +310,17 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         );
     }
 
-    private Map<Long, Long> getViewsCount(List<Event> events) {
-        return events.stream()
-                .collect(Collectors.toMap(
+    private Map<Long, Long> getConfirmedRequestsCount(List<Event> events) {
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .toList();
+
+        return participationRequestRepository.findByEventIdInAndStatus(eventIds, ParticipationRequest.RequestStatus.CONFIRMED)
+                .stream()
+                .map(ParticipationRequest::getEvent)
+                .collect(Collectors.groupingBy(
                         Event::getId,
-                        event -> statsClient.getEventViews(event.getId())
+                        Collectors.counting()
                 ));
     }
 }

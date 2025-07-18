@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.category.model.Category;
 import ru.yandex.practicum.category.repository.CategoryRepository;
+import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.event.dto.EventFullDto;
 import ru.yandex.practicum.event.dto.UpdateEventAdminRequest;
 import ru.yandex.practicum.event.mapper.EventMapper;
@@ -37,6 +38,7 @@ public class AdminEventServiceImpl implements AdminEventService {
     private final LocationMapper locationMapper;
     private final CategoryRepository categoryRepository;
     private final ParticipationRequestRepository participationRequestRepository;
+    private final StatsClient statsClient;
 
 
     @Override
@@ -64,10 +66,21 @@ public class AdminEventServiceImpl implements AdminEventService {
                 PageRequest.of(from / size, size)
         );
 
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .toList();
+
         Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsCount(events);
 
+        Map<Long, Long> viewsMap = statsClient.getViewsForEvents(eventIds);
+
         return events.stream()
-                .map(eventMapper::toFullDto)
+                .map(event -> {
+                    EventFullDto dto = eventMapper.toFullDto(event);
+                    dto.setViews(viewsMap.getOrDefault(event.getId(), 0L));
+                    dto.setConfirmedRequests(confirmedRequestsMap.getOrDefault(event.getId(), 0L));
+                    return dto;
+                })
                 .toList();
     }
 
