@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ru.yandex.practicum.category.model.Category;
 import ru.yandex.practicum.category.repository.CategoryRepository;
+import ru.yandex.practicum.client.StatsClient;
 import ru.yandex.practicum.event.dto.EventFullDto;
 import ru.yandex.practicum.event.dto.EventShortDto;
 import ru.yandex.practicum.event.dto.NewEventDto;
@@ -28,8 +29,11 @@ import ru.yandex.practicum.request.repository.ParticipationRequestRepository;
 import ru.yandex.practicum.user.model.User;
 import ru.yandex.practicum.user.repository.UserRepository;
 
+
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +48,7 @@ public class PrivateEventServiceImpl implements PrivateEventService {
     private final CategoryRepository categoryRepository;
     private final ParticipationRequestRepository participationRequestRepository;
     private final ParticipationRequestMapper participationRequestMapper;
+    private final StatsClient statsClient;
 
     @Override
     @Transactional
@@ -71,8 +76,17 @@ public class PrivateEventServiceImpl implements PrivateEventService {
 
         log.info("Getting events by user={}, from={}, size={}", userId, from, size);
         checkAndGetUser(userId);
-        return eventRepository.findByInitiatorId(userId, PageRequest.of(from / size, size)).stream()
-                .map(eventMapper::toShortDto)
+
+        List<Event> events = eventRepository.findByInitiatorId(userId, PageRequest.of(from / size, size));
+
+        Map<Long, Long> views = getViewsCount(events);
+
+        return events.stream()
+                .map(event -> {
+                    EventShortDto dto = eventMapper.toShortDto(event);
+                    dto.setViews(views.getOrDefault(event.getId(), 0L));
+                    return dto;
+                })
                 .toList();
     }
 
@@ -81,7 +95,11 @@ public class PrivateEventServiceImpl implements PrivateEventService {
 
         log.info("Getting event with id={} by user={}", eventId, userId);
         checkAndGetUser(userId);
-        return eventMapper.toFullDto(checkAndGetEvent(eventId));
+        Event event = checkAndGetEvent(eventId);
+        EventFullDto dto = eventMapper.toFullDto(event);
+        dto.setViews(statsClient.getEventViews(eventId));
+        return dto;
+
     }
 
     @Override
@@ -166,9 +184,8 @@ public class PrivateEventServiceImpl implements PrivateEventService {
             throw new ConflictException("Access denied to get events participation requests");
         }
 
-        List<ParticipationRequest> request = participationRequestRepository.findAllByEventIdAndRequesterId(eventId, userId);
-        return participationRequestMapper.toDtoList(request);
-
+        return participationRequestMapper.toDtoList(participationRequestRepository
+                .findAllByEventIdWithDetails(eventId));
     }
 
     @Override
@@ -281,5 +298,13 @@ public class PrivateEventServiceImpl implements PrivateEventService {
                     return new NotFoundException("Event with id " + eventId + " not found");
                 }
         );
+    }
+
+    private Map<Long, Long> getViewsCount(List<Event> events) {
+        return events.stream()
+                .collect(Collectors.toMap(
+                        Event::getId,
+                        event -> statsClient.getEventViews(event.getId())
+                ));
     }
 }

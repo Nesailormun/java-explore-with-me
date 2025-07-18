@@ -72,13 +72,13 @@ public class PublicEventServiceImpl implements PublicEventService {
     public EventFullDto getPublicEventById(Long eventId, HttpServletRequest request) {
 
         log.info("Retrieving public event with id={}", eventId);
-        saveStats(request);
-
         Event event = eventRepository.findByIdAndState(eventId, Event.EventState.PUBLISHED)
                 .orElseThrow(() -> {
                     log.warn("Could not find public event with id={}", eventId);
                     return new NotFoundException("Event with id=" + eventId + " was not found");
                 });
+
+        saveStats(request);
 
         Long confirmedRequests = requestRepository.countByEventIdAndStatus(eventId,
                 ParticipationRequest.RequestStatus.CONFIRMED);

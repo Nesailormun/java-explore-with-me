@@ -17,9 +17,13 @@ import ru.yandex.practicum.event.repository.EventRepository;
 import ru.yandex.practicum.exception.BadRequestException;
 import ru.yandex.practicum.exception.ConflictException;
 import ru.yandex.practicum.exception.NotFoundException;
+import ru.yandex.practicum.request.model.ParticipationRequest;
+import ru.yandex.practicum.request.repository.ParticipationRequestRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +36,7 @@ public class AdminEventServiceImpl implements AdminEventService {
     private final EventMapper eventMapper;
     private final LocationMapper locationMapper;
     private final CategoryRepository categoryRepository;
+    private final ParticipationRequestRepository participationRequestRepository;
 
 
     @Override
@@ -58,6 +63,8 @@ public class AdminEventServiceImpl implements AdminEventService {
                 rangeEnd,
                 PageRequest.of(from / size, size)
         );
+
+        Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsCount(events);
 
         return events.stream()
                 .map(eventMapper::toFullDto)
@@ -138,5 +145,19 @@ public class AdminEventServiceImpl implements AdminEventService {
         }
 
         return eventMapper.toFullDto(eventRepository.save(event));
+    }
+
+    private Map<Long, Long> getConfirmedRequestsCount(List<Event> events) {
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .toList();
+
+        return participationRequestRepository.findByEventIdInAndStatus(eventIds, ParticipationRequest.RequestStatus.CONFIRMED)
+                .stream()
+                .map(ParticipationRequest::getEvent)
+                .collect(Collectors.groupingBy(
+                        Event::getId,
+                        Collectors.counting()
+                ));
     }
 }

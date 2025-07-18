@@ -57,4 +57,5 @@ public class StatsClient {
             throw new StatsClientException("Ошибка при получении статистики.");
         }
     }
+
 }

@@ -34,7 +34,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     public ParticipationRequestDto createRequest(Long userId, Long eventId) {
 
         log.info("Creating request for user {} and event {}", userId, eventId);
-        User requester = checkAndGetUserExists(userId);
+        User requester = checkAndGetUser(userId);
         Event event = eventRepository.findById(eventId).orElseThrow(
                 () -> {
                     log.error("Event {} not found", eventId);
@@ -83,7 +83,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     public List<ParticipationRequestDto> getUserRequests(Long userId) {
 
         log.info("Getting user with id={} requests", userId);
-        checkAndGetUserExists(userId);
+        checkAndGetUser(userId);
         return participationRequestMapper.toDtoList(participationRequestRepository.findAllByRequesterId(userId));
     }
 
@@ -91,7 +91,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
 
         log.info("Cancelling request with id={} for user with id={}", requestId, userId);
-        checkAndGetUserExists(userId);
+        checkAndGetUser(userId);
         ParticipationRequest request = participationRequestRepository.findById(requestId).orElseThrow(
                 () -> {
                     log.error("Request with id={} not found", requestId);
@@ -102,7 +102,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         return participationRequestMapper.toDto(participationRequestRepository.save(request));
     }
 
-    private User checkAndGetUserExists(Long userId) {
+    private User checkAndGetUser(Long userId) {
         return userRepository.findById(userId).orElseThrow(
                 () -> {
                     log.error("User with id {} not found", userId);

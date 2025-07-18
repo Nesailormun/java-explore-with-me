@@ -47,6 +47,6 @@ public interface StatsRepository extends JpaRepository<EndpointHit, Long> {
     List<ViewStats> findAllUniqueStats(@Param("start") LocalDateTime start,
                                           @Param("end") LocalDateTime end);
 
-    @Query("SELECT COUNT(h) FROM EndpointHit h WHERE h.uri = CONCAT('/events/', :eventId)")
+    @Query("SELECT COUNT(DISTINCT h.ip) FROM EndpointHit h WHERE h.uri = CONCAT('/events/', :eventId)")
     Long countAllHitsByEventId(@Param("eventId") Long eventId);
 }
