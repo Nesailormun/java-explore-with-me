@@ -42,7 +42,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
                 }
         );
 
-        if (participationRequestRepository.findByIdAndEventId(userId, eventId).isPresent()) {
+        if (participationRequestRepository.findByRequesterIdAndEventId(userId, eventId).isPresent()) {
             log.error("Participation request for user {} and event {} already exists", userId, eventId);
             throw new ConflictException("Participation request for user " + userId + " and event " + eventId
                     + " already exists");
@@ -69,9 +69,9 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
                 .event(event)
                 .requester(requester)
                 .created(LocalDateTime.now())
-                .status(event.getRequestModeration()
-                        ? ParticipationRequest.RequestStatus.PENDING
-                        : ParticipationRequest.RequestStatus.CONFIRMED)
+                .status((!event.getRequestModeration() || limit == 0)
+                        ? ParticipationRequest.RequestStatus.CONFIRMED
+                        : ParticipationRequest.RequestStatus.PENDING)
                 .build();
 
         return participationRequestMapper.toDto(participationRequestRepository.save(request));

@@ -11,8 +11,7 @@ import ru.yandex.practicum.event.model.Location;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

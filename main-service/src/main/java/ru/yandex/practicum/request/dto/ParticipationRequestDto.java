@@ -6,8 +6,7 @@ import ru.yandex.practicum.request.model.ParticipationRequest;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

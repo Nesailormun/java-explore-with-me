@@ -11,7 +11,7 @@ import ru.yandex.practicum.category.repository.CategoryRepository;
 import ru.yandex.practicum.event.dto.EventFullDto;
 import ru.yandex.practicum.event.dto.EventShortDto;
 import ru.yandex.practicum.event.dto.NewEventDto;
-import ru.yandex.practicum.event.dto.UpdateEventRequest;
+import ru.yandex.practicum.event.dto.UpdateEventUserRequest;
 import ru.yandex.practicum.event.mapper.EventMapper;
 import ru.yandex.practicum.event.mapper.LocationMapper;
 import ru.yandex.practicum.event.model.Event;
@@ -19,8 +19,8 @@ import ru.yandex.practicum.event.repository.EventRepository;
 import ru.yandex.practicum.exception.BadRequestException;
 import ru.yandex.practicum.exception.ConflictException;
 import ru.yandex.practicum.exception.NotFoundException;
-import ru.yandex.practicum.event.dto.EventRequestStatusUpdateRequest;
-import ru.yandex.practicum.event.dto.EventRequestStatusUpdateResult;
+import ru.yandex.practicum.request.dto.EventRequestStatusUpdateRequest;
+import ru.yandex.practicum.request.dto.EventRequestStatusUpdateResult;
 import ru.yandex.practicum.request.dto.ParticipationRequestDto;
 import ru.yandex.practicum.request.mapper.ParticipationRequestMapper;
 import ru.yandex.practicum.request.model.ParticipationRequest;
@@ -55,6 +55,10 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         Category category = checkAndGetCategory(dto.getCategory());
 
         Event event = eventMapper.fromDto(dto);
+        if (event.getEventDate().isBefore(LocalDateTime.now().plusHours(2L))) {
+            log.error("Event date should start at least after 2 hours");
+            throw new ConflictException("Event date should start at least after 2 hours");
+        }
         event.setInitiator(user);
         event.setCategory(category);
         eventRepository.save(event);
@@ -82,7 +86,7 @@ public class PrivateEventServiceImpl implements PrivateEventService {
 
     @Override
     @Transactional
-    public EventFullDto updateUserEvent(Long userId, Long eventId, UpdateEventRequest request) {
+    public EventFullDto updateUserEvent(Long userId, Long eventId, UpdateEventUserRequest request) {
 
         log.info("Updating event with id={} by user={}; body={}", eventId, userId, request);
         checkAndGetUser(userId);
@@ -99,10 +103,12 @@ public class PrivateEventServiceImpl implements PrivateEventService {
             throw new ConflictException("Cannot update published event");
         }
 
-        if (request.getEventDate() != null &&
-                request.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
-            log.error("Event with id={} has incorrect eventDate={}", eventId, event.getEventDate());
-            throw new ConflictException("Event date must be at least 2 hours in the future");
+        if (request.getEventDate() != null) {
+            if (request.getEventDate().isBefore(LocalDateTime.now().plusHours(2L))) {
+                log.error("Event with id={} has incorrect eventDate={}", eventId, event.getEventDate());
+                throw new BadRequestException("Event date must be at least 2 hours in the future");
+            }
+            event.setEventDate(request.getEventDate());
         }
         if (request.getAnnotation() != null) {
             event.setAnnotation(request.getAnnotation());
@@ -123,6 +129,10 @@ public class PrivateEventServiceImpl implements PrivateEventService {
             event.setPaid(request.getPaid());
         }
         if (request.getParticipantLimit() != null) {
+            if (request.getParticipantLimit() < 0) {
+                log.error("Participant limit cannot be negative");
+                throw new BadRequestException("Participant limit cannot be negative");
+            }
             event.setParticipantLimit(request.getParticipantLimit());
         }
         if (request.getRequestModeration() != null) {
@@ -130,10 +140,10 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         }
         if (request.getStateAction() != null) {
             switch (request.getStateAction()) {
-                case "SEND_TO_REVIEW":
+                case SEND_TO_REVIEW:
                     event.setState(Event.EventState.PENDING);
                     break;
-                case "CANCEL_REVIEW":
+                case CANCEL_REVIEW:
                     event.setState(Event.EventState.CANCELED);
                     break;
                 default:
@@ -185,7 +195,7 @@ public class PrivateEventServiceImpl implements PrivateEventService {
             }
             if (!participationRequest.getStatus().equals(ParticipationRequest.RequestStatus.PENDING)) {
                 log.error("Participation request status must be PENDING");
-                throw new BadRequestException("Request must have status PENDING");
+                throw new ConflictException("Request must have status PENDING");
             }
         });
 

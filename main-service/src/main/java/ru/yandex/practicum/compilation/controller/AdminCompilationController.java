@@ -28,7 +28,7 @@ public class AdminCompilationController {
     }
 
     @PatchMapping("/{compId}")
-    CompilationDto updateCompilation(@PathVariable Long compId, @RequestBody UpdateCompilationRequest dto) {
+    CompilationDto updateCompilation(@PathVariable Long compId, @RequestBody @Valid UpdateCompilationRequest dto) {
         log.info("PATCH /admin/compilations/{}  body={}", compId, dto);
         return compilationService.updateCompilation(compId, dto);
     }

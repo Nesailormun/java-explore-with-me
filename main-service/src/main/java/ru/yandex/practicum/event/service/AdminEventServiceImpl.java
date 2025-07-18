@@ -8,12 +8,13 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.category.model.Category;
 import ru.yandex.practicum.category.repository.CategoryRepository;
 import ru.yandex.practicum.event.dto.EventFullDto;
-import ru.yandex.practicum.event.dto.UpdateEventRequest;
+import ru.yandex.practicum.event.dto.UpdateEventAdminRequest;
 import ru.yandex.practicum.event.mapper.EventMapper;
 import ru.yandex.practicum.event.mapper.LocationMapper;
 import ru.yandex.practicum.event.model.Event;
 import ru.yandex.practicum.event.repository.CustomEventRepository;
 import ru.yandex.practicum.event.repository.EventRepository;
+import ru.yandex.practicum.exception.BadRequestException;
 import ru.yandex.practicum.exception.ConflictException;
 import ru.yandex.practicum.exception.NotFoundException;
 
@@ -65,7 +66,7 @@ public class AdminEventServiceImpl implements AdminEventService {
 
     @Override
     @Transactional
-    public EventFullDto updateEvent(Long eventId, UpdateEventRequest request) {
+    public EventFullDto updateEvent(Long eventId, UpdateEventAdminRequest request) {
 
         log.info("Admin is updating event with id={}, request={}", eventId, request);
         Event event = eventRepository.findById(eventId)
@@ -98,6 +99,10 @@ public class AdminEventServiceImpl implements AdminEventService {
             event.setRequestModeration(request.getRequestModeration());
         }
         if (request.getEventDate() != null) {
+            if (request.getEventDate().isBefore(LocalDateTime.now().plusHours(2L))) {
+                log.error("Event with id={} has incorrect eventDate={}", eventId, event.getEventDate());
+                throw new BadRequestException("Event date must be at least 2 hours in the future");
+            }
             event.setEventDate(request.getEventDate());
         }
         if (request.getLocation() != null) {
@@ -114,7 +119,7 @@ public class AdminEventServiceImpl implements AdminEventService {
 
         if (request.getStateAction() != null) {
             switch (request.getStateAction()) {
-                case "PUBLISH_EVENT":
+                case PUBLISH_EVENT:
                     if (event.getState() != Event.EventState.PENDING) {
                         log.warn("Cannot publish event. Event already published or canceled");
                         throw new ConflictException("Only pending events can be published");
@@ -122,7 +127,7 @@ public class AdminEventServiceImpl implements AdminEventService {
                     event.setState(Event.EventState.PUBLISHED);
                     event.setPublishedOn(LocalDateTime.now());
                     break;
-                case "REJECT_EVENT":
+                case REJECT_EVENT:
                     if (event.getState() == Event.EventState.PUBLISHED) {
                         log.warn("Cannot reject event. Event already published");
                         throw new ConflictException("Cannot reject published event");

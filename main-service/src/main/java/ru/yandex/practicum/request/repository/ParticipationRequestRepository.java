@@ -6,7 +6,6 @@ import ru.yandex.practicum.request.model.ParticipationRequest;
 import java.util.List;
 import java.util.Optional;
 
-
 public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Long> {
 
 
@@ -14,11 +13,9 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
 
      List<ParticipationRequest> findByEventIdInAndStatus(List<Long> eventIds, ParticipationRequest.RequestStatus status);
 
-     List<ParticipationRequest> findAllByEventId(Long eventId);
+     Optional<ParticipationRequest> findByRequesterIdAndEventId(Long userId, Long eventId);
 
      List<ParticipationRequest> findAllByIdIn(List<Long> ids);
-
-     Optional<ParticipationRequest> findByIdAndEventId(Long requestId, Long eventId);
 
      List<ParticipationRequest> findAllByRequesterId(Long requesterId);
 

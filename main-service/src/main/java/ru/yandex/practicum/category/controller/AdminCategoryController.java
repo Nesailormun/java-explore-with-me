@@ -20,13 +20,13 @@ public class AdminCategoryController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CategoryDto create(@Valid @RequestBody NewCategoryDto dto) {
-        log.info("POST /admin/categories with body={}", dto.toString());
+        log.info("POST /admin/categories with body={}", dto);
         return categoryService.createCategory(dto);
     }
 
     @PatchMapping("/{catId}")
     public CategoryDto update(@PathVariable Long catId, @Valid @RequestBody CategoryDto dto) {
-        log.info("PATCH /admin/categories with body={}", dto.toString());
+        log.info("PATCH /admin/categories with body={}", dto);
         return categoryService.updateCategory(catId, dto);
     }
 

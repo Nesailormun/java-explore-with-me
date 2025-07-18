@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.event.dto.EventFullDto;
-import ru.yandex.practicum.event.dto.UpdateEventRequest;
+import ru.yandex.practicum.event.dto.UpdateEventAdminRequest;
 import ru.yandex.practicum.event.service.AdminEventService;
 
 import java.time.LocalDateTime;
@@ -37,7 +37,7 @@ public class AdminEventController {
 
     @PatchMapping("/{eventId}")
     public EventFullDto updateEvent(@PathVariable Long eventId,
-                                    @Valid @RequestBody UpdateEventRequest request) {
+                                    @RequestBody @Valid  UpdateEventAdminRequest request) {
         log.info("PUT /admin/events/{}", eventId);
         return adminEventService.updateEvent(eventId, request);
     }

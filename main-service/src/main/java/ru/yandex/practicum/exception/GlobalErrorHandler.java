@@ -4,7 +4,6 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -85,25 +84,6 @@ public class GlobalErrorHandler {
                 .build();
     }
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
-        String errorMessage = "Required request body is missing";
-
-        if (ex.getCause() != null && ex.getCause().getMessage() != null) {
-            errorMessage = ex.getCause().getMessage();
-        }
-
-        log.warn("400 BAD_REQUEST: {}", errorMessage);
-
-        return ApiError.builder()
-                .errors(List.of(errorMessage))
-                .message("Invalid request body")
-                .reason("Required request body is missing or could not be read")
-                .status(HttpStatus.BAD_REQUEST.name())
-                .timestamp(LocalDateTime.now())
-                .build();
-    }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

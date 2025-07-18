@@ -20,9 +20,8 @@ public interface EventMapper {
     @Mapping(source = "state", target = "state")
     @Mapping(target = "views", ignore = true)
     @Mapping(target = "confirmedRequests", ignore = true)
-    default EventFullDto toFullDto(Event event) {
-        return null;
-    }
+    EventFullDto toFullDto(Event event);
+
 
     @Mapping(source = "initiator", target = "initiator")
     @Mapping(source = "category", target = "category")
@@ -39,6 +38,7 @@ public interface EventMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "requestModeration", defaultValue = "true")
     @Mapping(target = "paid", defaultValue = "false")
+    @Mapping(target = "participantLimit", defaultValue = "0")
     Event fromDto(NewEventDto dto);
 
     @Named("mapCategoryId")

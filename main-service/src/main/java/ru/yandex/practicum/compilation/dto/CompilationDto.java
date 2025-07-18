@@ -9,8 +9,7 @@ import ru.yandex.practicum.event.dto.EventShortDto;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

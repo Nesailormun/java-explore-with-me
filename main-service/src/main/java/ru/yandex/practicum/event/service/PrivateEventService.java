@@ -3,9 +3,9 @@ package ru.yandex.practicum.event.service;
 import ru.yandex.practicum.event.dto.EventFullDto;
 import ru.yandex.practicum.event.dto.EventShortDto;
 import ru.yandex.practicum.event.dto.NewEventDto;
-import ru.yandex.practicum.event.dto.UpdateEventRequest;
-import ru.yandex.practicum.event.dto.EventRequestStatusUpdateRequest;
-import ru.yandex.practicum.event.dto.EventRequestStatusUpdateResult;
+import ru.yandex.practicum.event.dto.UpdateEventUserRequest;
+import ru.yandex.practicum.request.dto.EventRequestStatusUpdateRequest;
+import ru.yandex.practicum.request.dto.EventRequestStatusUpdateResult;
 import ru.yandex.practicum.request.dto.ParticipationRequestDto;
 
 import java.util.List;
@@ -18,7 +18,7 @@ public interface PrivateEventService {
 
     EventFullDto getUserEvent(Long userId, Long eventId);
 
-    EventFullDto updateUserEvent(Long userId, Long eventId, UpdateEventRequest request);
+    EventFullDto updateUserEvent(Long userId, Long eventId, UpdateEventUserRequest request);
 
     List<ParticipationRequestDto> getEventParticipants(Long userId, Long eventId);
 

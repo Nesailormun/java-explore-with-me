@@ -1,12 +1,11 @@
-package ru.yandex.practicum.event.dto;
+package ru.yandex.practicum.request.dto;
 
 import lombok.*;
 import ru.yandex.practicum.request.model.ParticipationRequest;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

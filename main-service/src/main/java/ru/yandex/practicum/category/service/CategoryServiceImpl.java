@@ -71,7 +71,7 @@ public class CategoryServiceImpl implements CategoryService {
             throw new NotFoundException("Категория не найдена.");
         }
 
-        if (eventRepository.existsById(id)) {
+        if (eventRepository.existsByCategoryId(id)) {
             log.warn("The category is not empty");
             throw new ConflictException("The category is not empty");
         }
