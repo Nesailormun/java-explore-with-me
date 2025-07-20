@@ -92,7 +92,7 @@ public class AdminEventServiceImpl implements AdminEventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> {
                     log.info("Event with id={} not found", eventId);
-                    return new NotFoundException("Event not found");
+                    return new NotFoundException("Event with id= " + eventId + " not found");
                 });
 
         if (event.getState() == Event.EventState.PUBLISHED) {

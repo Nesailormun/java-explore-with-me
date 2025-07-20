@@ -34,7 +34,7 @@ public class CategoryServiceImpl implements CategoryService {
         log.info("Обработка запроса на добавление категории: {}", newCategoryDto.toString());
         repository.findByName(newCategoryDto.getName()).ifPresent(c -> {
             log.warn("Ошибка. Категория с именем {} уже существует.", newCategoryDto.getName());
-            throw new ConflictException("Категория уже существует.");
+            throw new ConflictException("Категория c именем " + newCategoryDto.getName() + " уже существует.");
         });
         Category saved = repository.save(mapper.toEntity(newCategoryDto));
         log.info("Категория успешно сохранена.");
@@ -48,13 +48,13 @@ public class CategoryServiceImpl implements CategoryService {
         Category existing = repository.findById(id).orElseThrow(
                 () -> {
                     log.warn("Ошибка. Категория c id={} не найдена", id);
-                    return new NotFoundException("Категория не найдена.");
+                    return new NotFoundException("Категория c id= " + id + " не найдена.");
                 });
 
         if (!existing.getName().equals(categoryDto.getName()) &&
                 repository.findByName(categoryDto.getName()).isPresent()) {
             log.warn("Ошибка. Категория: {} уже существует.", existing.getName());
-            throw new ConflictException("Категория уже существует");
+            throw new ConflictException("Категория c именем " + existing.getName() + " уже существует");
         }
 
         existing.setName(categoryDto.getName());
@@ -68,7 +68,7 @@ public class CategoryServiceImpl implements CategoryService {
         log.info("Запрос на удаление категории с id={}", id);
         if (!repository.existsById(id)) {
             log.info("Category with id={} is not found.", id);
-            throw new NotFoundException("Категория не найдена.");
+            throw new NotFoundException("Категория c id= " + id + " не найдена.");
         }
 
         if (eventRepository.existsByCategoryId(id)) {
@@ -94,7 +94,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .map(mapper::toDto)
                 .orElseThrow(() -> {
                     log.warn("Ошибка. Категория с id={} не найдена", id);
-                    return new NotFoundException("Категория не найдена.");
+                    return new NotFoundException("Категория с id = " + id + " не найдена.");
                 });
     }
 }
