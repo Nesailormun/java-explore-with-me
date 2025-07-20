@@ -2,6 +2,7 @@ package ru.practicum.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -34,7 +35,6 @@ public class StatsController {
     }
 
     @GetMapping("/stats")
-    @ResponseStatus(HttpStatus.OK)
     public List<ViewStats> getStats(
             @RequestParam @NotNull @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
             @RequestParam @NotNull @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
@@ -49,6 +49,12 @@ public class StatsController {
         }
 
         return statsService.getStats(start, end, uris, unique);
+    }
+
+    @GetMapping("/stats/{eventId}")
+    public Long getViewsCountByEventId(@PathVariable @Positive Long eventId) {
+        log.info("GET /stats/{}.", eventId);
+        return statsService.getViewsCountByEventId(eventId);
     }
 
 }

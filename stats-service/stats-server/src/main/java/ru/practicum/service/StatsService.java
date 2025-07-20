@@ -11,4 +11,6 @@ public interface StatsService {
    void createHit(CreateEndpointHitDto createEndpointHitDto);
 
     List<ViewStats> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique);
+
+    Long getViewsCountByEventId(Long eventId);
 }
