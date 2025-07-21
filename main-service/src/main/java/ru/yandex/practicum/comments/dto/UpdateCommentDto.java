@@ -9,6 +9,6 @@ import jakarta.validation.constraints.Size;
 @AllArgsConstructor
 public class UpdateCommentDto {
 
-    @Size(min = 1, max = 2000)
+    @Size(min = 1, max = 1000)
     private String text;
 }
